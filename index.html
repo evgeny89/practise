@@ -23,7 +23,98 @@
             <a href="todo/todo.html" class="nav-link">Список дел</a>
         </li>
     </menu>
-    <div id="app"></div>
+    <div class="row">
+        <div class="col-6">
+            <input id="filter" class="form-control" type="text" placeholder="фильтр" aria-label="default input example">
+        </div>
+        <div class="col"></div>
+        <div class="col-1">
+            <button class="btn btn-primary open-modal">Добавить</button>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col">
+            <table class="table table-sm table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col" data-sort="id">#</th>
+                        <th scope="col" data-sort="name">Имя</th>
+                        <th scope="col">Навыки</th>
+                        <th scope="col" data-sort="employment_at">Дата</th>
+                        <th scope="col" data-sort="gender">Пол</th>
+                        <th scope="col" data-sort="age">Возраст</th>
+                        <th scope="col" data-sort="salary">Зарплата</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="modal" tabindex="-1" id="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Новый сотрудник</h5>
+                    <button type="button" class="btn-close close-modal" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <form>
+                            <div class="mb-3">
+                                <div class="row">
+                                    <label class="col-form-label">Пол:</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="male" value="male" checked>
+                                    <label class="form-check-label" for="male">
+                                        Мужской
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="female" value="female">
+                                    <label class="form-check-label" for="female">
+                                        Женский
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="row">
+                                    <div class="col">
+                                        <label for="staff-name" class="col-form-label">Имя:</label>
+                                        <input type="text" class="form-control" id="staff-name" name="name">
+                                    </div>
+                                    <div class="col">
+                                        <label for="staff-date" class="col-form-label">Дата:</label>
+                                        <input type="date" class="form-control" id="staff-date" name="employment_at">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="row">
+                                    <div class="col">
+                                        <label for="staff-salary" class="col-form-label">Зарплата:</label>
+                                        <input type="number" step="100" class="form-control" id="staff-salary" name="salary">
+                                    </div>
+                                    <div class="col">
+                                        <label for="staff-age" class="col-form-label">Возраст:</label>
+                                        <input type="number" class="form-control" id="staff-age" name="age">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="staff-skills" class="col-form-label">Навыки:</label>
+                                <textarea class="form-control" id="staff-skills" name="skills" rows="6"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary close-modal" data-bs-dismiss="modal">Отменить</button>
+                    <button type="button" class="btn btn-primary save-modal">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <script src="index.js"></script>
 </body>
