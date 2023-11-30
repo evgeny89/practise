@@ -42,8 +42,10 @@
                         <th scope="col">Навыки</th>
                         <th scope="col" data-sort="employment_at">Дата</th>
                         <th scope="col" data-sort="gender">Пол</th>
+                        <th scope="col" data-sort="married">Брак</th>
                         <th scope="col" data-sort="age">Возраст</th>
                         <th scope="col" data-sort="salary">Зарплата</th>
+                        <th scope="col"></th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
@@ -60,6 +62,7 @@
                 <div class="modal-body">
                     <div class="row">
                         <form>
+                            <input type="hidden" name="id" id="id">
                             <div class="mb-3">
                                 <div class="row">
                                     <label class="col-form-label">Пол:</label>
@@ -71,11 +74,15 @@
                                     </label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="gender" id="female" value="female">
-                                    <label class="form-check-label" for="female">
-                                        Женский
-                                    </label>
-                                </div>
+                                            <input class="form-check-input" type="radio" name="gender" id="female" value="female">
+                                            <label class="form-check-label" for="female">
+                                                Женский
+                                            </label>
+                                        </div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="married">
+                                <label class="form-check-label" for="married">Состоит в браке</label>
                             </div>
                             <div class="mb-3">
                                 <div class="row">

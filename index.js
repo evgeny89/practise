@@ -98,9 +98,7 @@ const toCurrency = (value) => {
 }
 
 const newStaff = () => {
-    const newStaff = {
-        id: Math.max(...staffs.map(staff => staff.id)) + 1,
-    }
+    const newStaff = {}
 
     const formData = new FormData(document.forms[0])
 
@@ -118,21 +116,40 @@ const newStaff = () => {
         }
     }
 
-    staffs.push(newStaff)
+    if (!newStaff.id) {
+        newStaff.id = Math.max(...staffs.map(staff => staff.id)) + 1
+        staffs.push(newStaff)
+    } else {
+        newStaff.id = +newStaff.id
+        const index = staffs.findIndex(staff => staff.id === newStaff.id)
+        staffs[index] = newStaff
+    }
+
+    filteredStaffs = [...staffs]
     document.forms[0].reset()
     document.dispatchEvent(rebuild)
     closeModal()
 }
 
+const deleteStaff = (id) => {
+    staffs.splice(staffs.findIndex(staff => staff.id === +id), 1)
+    filteredStaffs = [...staffs]
+    document.dispatchEvent(rebuild)
+}
+
 const renderRow = (staff) => {
-    return `<tr data-id="${staff.id}">
+    return `<tr role="button" tabindex="0" data-edit-id="${staff.id}">
         <th scope="row">${staff.id}</th>
         <td>${staff.name}</td>
         <td>${staff.skills.join(', ')}</td>
         <td>${new Date(staff.employment_at).toLocaleDateString()} г.</td>
         <td>${gender[staff.gender]}</td>
+        <td>${staff.married ? 'состоит' : 'не состоит'}</td>
         <td>${staff.age}</td>
         <td>${toCurrency(staff.salary)}</td>
+        <td>
+            <button type="button" class="btn-close delete-btn" data-bs-dismiss="modal" aria-label="Close" data-delete-id="${staff.id}"></button>
+        </td>
     </tr>`
 }
 
@@ -192,6 +209,30 @@ document.addEventListener('rebuild', () => {
 
     filteredStaffs.forEach(staff => {
         tableBody.insertAdjacentHTML('beforeend', renderRow(staff))
+    })
+
+    document.querySelectorAll('[data-edit-id]').forEach(el => {
+        el.addEventListener('click', (e) => {
+            const id = e.currentTarget.dataset.editId
+            const staff = staffs.find(staff => staff.id === +id)
+
+            modal.querySelector('#id').value = staff.id
+            modal.querySelector('#staff-name').value = staff.name
+            modal.querySelector('#staff-age').value = staff.age
+            modal.querySelector(`#${staff.gender}`).checked = true
+            modal.querySelector('#staff-salary').value = staff.salary
+            modal.querySelector('#married').checked = staff.married
+            modal.querySelector('#staff-skills').value = staff.skills.join('\r\n')
+            modal.querySelector('#staff-date').value = new Date(staff.employment_at).toISOString().slice(0, 10)
+
+            openModal()
+        })
+    })
+
+    document.querySelectorAll('[data-delete-id]').forEach(el => {
+        el.addEventListener('click', (e) => {
+            deleteStaff(e.target.dataset.deleteId)
+        })
     })
 })
 
