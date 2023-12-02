@@ -35,11 +35,6 @@ const loadUsers = async () => {
     return []
 }
 
-const toCurrency = (value) => {
-    const options = {currency: 'RUB', style: 'currency'}
-    return new Intl.NumberFormat('Ru-ru', options).format(value)
-}
-
 const newStaff = () => {
     const newStaff = {}
 
