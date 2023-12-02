@@ -1,85 +1,6 @@
-const staffs = [
-    {
-        id: 1,
-        name: "John",
-        age: 30,
-        gender: "male",
-        salary: 5000,
-        married: false,
-        skills: ["html", "css", "js"],
-        employment_at: "2020-01-01"
-    },
-    {
-        id: 2,
-        name: "Jane",
-        age: 25,
-        gender: "female",
-        salary: 4000,
-        married: true,
-        skills: ["html", "css", "js", "php"],
-        employment_at: "2023-06-21"
-    },
-    {
-        id: 3,
-        name: "Bob",
-        age: 35,
-        gender: "male",
-        salary: 6000,
-        married: false,
-        skills: ["html", "css", "js", "python"],
-        employment_at: "2021-03-15"
-    },
-    {
-        id: 4,
-        name: "Alice",
-        age: 28,
-        gender: "female",
-        salary: 4500,
-        married: true,
-        skills: ["html", "css"],
-        employment_at: "2022-09-01"
-    },
-    {
-        id: 5,
-        name: "Charlie",
-        age: 40,
-        gender: "male",
-        salary: 7000,
-        married: true,
-        skills: ["html", "css", "js", "python", "java"],
-        employment_at: "2020-07-10"
-    },
-    {
-        id: 6,
-        name: "Emily",
-        age: 32,
-        gender: "female",
-        salary: 5000,
-        married: true,
-        skills: ["js", "C++"],
-        employment_at: "2023-02-28"
-    },
-    {
-        id: 7,
-        name: "David",
-        age: 29,
-        gender: "male",
-        salary: 5500,
-        married: true,
-        skills: ["html", "css", "js"],
-        employment_at: "2021-11-05"
-    },
-    {
-        id: 8,
-        name: "Sophia",
-        age: 27,
-        gender: "female",
-        salary: 4000,
-        married: true,
-        skills: ["html", "css", "js"],
-        employment_at: "2022-08-15"
-    }
-]
+let staffs = []
+
+let filteredStaffs = [...staffs]
 
 const gender = {
     male: "мужской",
@@ -88,9 +9,31 @@ const gender = {
 
 const rebuild = new Event('rebuild', {bubbles: true})
 
-let filteredStaffs = [...staffs]
+const config = {
+    sort: null,
+    page: 1,
+    perPage: 10,
+    url: 'https://api.slingacademy.com/v1/sample-data/users'
+}
 
-let sort = null
+const getUrl = (page) => {
+    const offset = (page * config.perPage) - config.perPage
+    const url = new URL(config.url)
+    url.searchParams.set('limit', config.perPage)
+    url.searchParams.set('offset', offset.toString())
+
+    return url
+}
+
+const loadUsers = async () => {
+    const response = await fetch(getUrl(config.page))
+    if (response.ok) {
+        const json = await response.json()
+        staffs = json.users
+        return [...staffs]
+    }
+    return []
+}
 
 const toCurrency = (value) => {
     const options = {currency: 'RUB', style: 'currency'}
@@ -140,13 +83,12 @@ const deleteStaff = (id) => {
 const renderRow = (staff) => {
     return `<tr role="button" tabindex="0" data-edit-id="${staff.id}">
         <th scope="row">${staff.id}</th>
-        <td>${staff.name}</td>
-        <td>${staff.skills.join(', ')}</td>
-        <td>${new Date(staff.employment_at).toLocaleDateString()} г.</td>
+        <td>${staff.last_name} ${staff.first_name}</td>
+        <td>${new Date(staff.date_of_birth).toLocaleDateString()} г.</td>
         <td>${gender[staff.gender]}</td>
-        <td>${staff.married ? 'состоит' : 'не состоит'}</td>
-        <td>${staff.age}</td>
-        <td>${toCurrency(staff.salary)}</td>
+        <td>${staff.city}</td>
+        <td>${staff.email}</td>
+        <td>${staff.phone}</td>
         <td>
             <button type="button" class="btn-close delete-btn" data-bs-dismiss="modal" aria-label="Close" data-delete-id="${staff.id}"></button>
         </td>
@@ -175,7 +117,13 @@ filterInput.addEventListener('input', (e) => {
     if (e.target.value === '') {
         filteredStaffs = [...staffs]
     } else {
-        filteredStaffs = staffs.filter(staff => staff.name.toLowerCase().includes(e.target.value.toLowerCase()))
+        filteredStaffs = staffs.filter(staff => {
+            const first_name_compare = staff.first_name.toLowerCase().includes(e.target.value.toLowerCase())
+            const last_name_compare = staff.last_name.toLowerCase().includes(e.target.value.toLowerCase())
+            const email_name_compare = staff.email.toLowerCase().includes(e.target.value.toLowerCase())
+            const city_name_compare = staff.city.toLowerCase().includes(e.target.value.toLowerCase())
+            return first_name_compare || last_name_compare || email_name_compare || city_name_compare
+        })
     }
     document.dispatchEvent(rebuild)
 })
@@ -186,20 +134,20 @@ document.querySelectorAll('[data-sort]').forEach(el => {
         filteredStaffs.sort((a, b) => {
             switch (key) {
                 case 'name':
-                    return sort === key ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name)
-                case 'age':
-                case 'salary':
-                    return sort === key ? b.age - a.age : a.age - b.age
-                case 'employment_at':
-                    return sort === key
-                        ? new Date(b.employment_at) - new Date(a.employment_at)
-                        : new Date(a.employment_at) - new Date(b.employment_at)
+                    return config.sort === key
+                        ? a.first_name.localeCompare(b.first_name) || a.last_name.localeCompare(b.last_name)
+                        : b.first_name.localeCompare(a.first_name) || b.last_name.localeCompare(a.last_name)
+                case 'date_of_birth':
+                    return config.sort === key
+                        ? new Date(b.date_of_birth) - new Date(a.date_of_birth)
+                        : new Date(a.date_of_birth) - new Date(b.date_of_birth)
                 default:
-                    return 0
-
+                    return config.sort === key
+                        ? a[key].localeCompare(b[key])
+                        : b[key].localeCompare(a.key)
             }
         })
-        sort = sort === key ? null : key
+        config.sort = config.sort === key ? null : key
         document.dispatchEvent(rebuild)
     })
 })
@@ -236,6 +184,7 @@ document.addEventListener('rebuild', () => {
     })
 })
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    filteredStaffs = await loadUsers()
     document.dispatchEvent(rebuild)
 })
