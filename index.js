@@ -13,6 +13,7 @@ const config = {
     sort: null,
     page: 1,
     perPage: 10,
+    lastPage: 1,
     url: 'https://api.slingacademy.com/v1/sample-data/users'
 }
 
@@ -25,11 +26,71 @@ const getUrl = (page) => {
     return url
 }
 
+const makePagination = () => {
+    const pages = [1]
+    if (config.page > 4) {
+        pages.push(config.page - 3)
+    }
+    if (config.page > 3) {
+        pages.push(config.page - 2)
+    }
+    if (config.page > 2) {
+        pages.push(config.page - 1)
+    }
+    if (config.page > 1) {
+        pages.push(config.page)
+    }
+    if (config.lastPage - config.page > 2) {
+        pages.push(config.page + 1)
+    }
+    if (config.lastPage - config.page > 3) {
+        pages.push(config.page + 2)
+    }
+    if (config.lastPage - config.page > 4) {
+        pages.push(config.page + 3)
+    }
+    if (config.lastPage - config.page > 0) {
+        pages.push(config.lastPage)
+    }
+
+    return pages.reduce((pagination, page, index) => {
+        if (index === pages.length - 1 && config.page < config.lastPage - 4) {
+            pagination += '<span class="d-flex align-items-end px-2">...</span>'
+        }
+        pagination += `<li class="page-item"><button class="page-link ${page === config.page ? 'active' : ''}" data-page="${page}">${page}</button></li>`
+        if (index === 0 && config.page > 4) {
+            pagination += '<span class="d-flex align-items-end px-2">...</span>'
+        }
+        return pagination
+    }, '')
+}
+
+const addListenersForPagination = () => {
+    document.querySelectorAll('.page-link[data-page]')
+        .forEach(page => {
+            page.addEventListener('click', async (e) => {
+                console.log(e.target.dataset.page)
+                config.page = +e.target.dataset.page
+                filteredStaffs = await loadUsers()
+                document.dispatchEvent(rebuild)
+            })
+        })
+}
+
 const loadUsers = async () => {
     const response = await fetch(getUrl(config.page))
     if (response.ok) {
+        const pagination = document.querySelector('.pagination')
+
         const json = await response.json()
+        config.lastPage = Math.ceil(json.total_users / config.perPage)
+        config.page = (json.offset + config.perPage) / config.perPage
         staffs = json.users
+
+        pagination.innerHTML = ''
+        pagination.insertAdjacentHTML('afterbegin', makePagination())
+        addListenersForPagination()
+
         return [...staffs]
     }
     return []
