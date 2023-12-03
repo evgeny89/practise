@@ -14,8 +14,26 @@ const config = {
     page: 1,
     perPage: 10,
     lastPage: 1,
-    url: 'https://api.slingacademy.com/v1/sample-data/users'
+    url: 'https://api.slingacademy.com/v1/sample-data/users',
+    crudUrl: 'https://jsonplaceholder.typicode.com/users',
 }
+
+const fieldsValidator = {
+    id: /^[0-9]+$/,
+    gender: /^male|female$/,
+    first_name: /^[A-zА-яЁё]+$/,
+    last_name: /^[A-zА-яЁё]+$/,
+    email: /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/,
+    phone: /^[0-9()\-+.x]+$/, //^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$/,
+    date_of_birth: /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/,
+    address: /^((?=.+[,|\r\n])){3,}[0-9A-zА-яЁё \s,.-]+$/,
+}
+
+const form = document.forms.user
+const tableBody = document.querySelector('#table-body')
+const modal = document.querySelector('#modal')
+const filterInput = document.querySelector('#filter')
+const toast = document.querySelector('#toast')
 
 const getUrl = (page) => {
     const offset = (page * config.perPage) - config.perPage
@@ -24,6 +42,14 @@ const getUrl = (page) => {
     url.searchParams.set('offset', offset.toString())
 
     return url
+}
+
+const showToast = (text) => {
+    toast.querySelector('.toast-body').innerHTML = text
+    toast.classList.add('show')
+    setTimeout(() => {
+        hideToast()
+    }, 2000)
 }
 
 const makePagination = () => {
@@ -96,50 +122,98 @@ const loadUsers = async () => {
     return []
 }
 
-const newStaff = () => {
+const validate = (staff) => {
+    let errors = false
+    for (const [key, value] of Object.entries(staff)) {
+        if (!fieldsValidator[key].test(value)) {
+            errors = true
+            const el = document.querySelector(`[name=${key}]`)
+            el.classList.add('is-invalid')
+        }
+    }
+    return errors
+}
+
+const newStaff = async () => {
     const newStaff = {}
 
-    const formData = new FormData(document.forms[0])
+    const formData = new FormData(form)
 
     for (const key of formData.keys()) {
         newStaff[key] = null
         switch (key) {
-            case 'skills':
-                newStaff[key] = formData.get(key).split(/\r?\n/)
-                break;
-            case 'employment_at':
-                newStaff[key] = new Date(formData.get(key))
+            case 'date_of_birth':
+                newStaff[key] = !isNaN(new Date(formData.get(key)))
+                    ? new Date(formData.get(key))?.toISOString()
+                    : formData.get(key)
                 break
             default:
                 newStaff[key] = formData.get(key)
         }
     }
 
-    if (!newStaff.id) {
-        newStaff.id = Math.max(...staffs.map(staff => staff.id)) + 1
-        staffs.push(newStaff)
-    } else {
-        newStaff.id = +newStaff.id
-        const index = staffs.findIndex(staff => staff.id === newStaff.id)
-        staffs[index] = newStaff
+    if (validate(newStaff)) {
+        return
     }
 
-    filteredStaffs = [...staffs]
-    document.forms[0].reset()
+    if (!newStaff.id) {
+        const response = await fetch(config.crudUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newStaff)
+        })
+        if (response.ok) {
+            const json = await response.json()
+            showToast(`${json.last_name} ${json.first_name} добавлен`)
+        } else {
+            showToast('Ошибка добавления')
+        }
+    } else {
+        const response = await fetch(`${config.crudUrl}/${newStaff.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newStaff)
+        })
+        if (response.ok) {
+            const json = await response.json()
+            showToast(`${json.last_name} ${json.first_name} изменен`)
+        } else {
+            showToast('Ошибка изменения')
+        }
+    }
+
+    form.reset()
     document.dispatchEvent(rebuild)
     closeModal()
 }
 
-const deleteStaff = (id) => {
-    staffs.splice(staffs.findIndex(staff => staff.id === +id), 1)
-    filteredStaffs = [...staffs]
-    document.dispatchEvent(rebuild)
+const deleteStaff = async (id) => {
+    const staff = staffs.find(staff => staff.id === +id)
+    const response = await fetch(`${config.crudUrl}/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+    })
+    if (response.ok) {
+        showToast(`${staff.last_name} ${staff.first_name} удален`)
+    } else {
+        showToast('Ошибка удаления')
+    }
 }
 
 const renderRow = (staff) => {
     return `<tr role="button" tabindex="0" data-edit-id="${staff.id}">
         <th scope="row">${staff.id}</th>
-        <td>${staff.last_name} ${staff.first_name}</td>
+        <td>
+            ${staff.profile_picture ? `<img src="${staff.profile_picture}" class="rounded-circle" width="25" alt="${staff.last_name}">` : ''}
+            <span class="link-primary">${staff.last_name} ${staff.first_name}</span>
+        </td>
         <td>${new Date(staff.date_of_birth).toLocaleDateString()} г.</td>
         <td>${gender[staff.gender]}</td>
         <td>${staff.city}</td>
@@ -151,17 +225,24 @@ const renderRow = (staff) => {
     </tr>`
 }
 
+const hideToast = () => {
+    toast.classList.remove('show')
+    toast.querySelector('.toast-body').innerHTML = ''
+}
+
 const openModal = () => {
     modal.classList.add('show')
 }
 
 const closeModal = () => {
     modal.classList.remove('show')
+    modal.querySelectorAll('.is-invalid')
+        .forEach(el => el.classList.remove('is-invalid'))
 }
 
-const tableBody = document.querySelector('#table-body')
-const modal = document.querySelector('#modal')
-const filterInput = document.querySelector('#filter')
+form.addEventListener('input', function (event) {
+    event.target.classList.remove('is-invalid')
+});
 
 document.querySelector('.open-modal').addEventListener('click', openModal)
 modal.querySelectorAll('.close-modal')
@@ -169,17 +250,18 @@ modal.querySelectorAll('.close-modal')
 
 modal.querySelector('.save-modal').addEventListener('click', newStaff)
 
-filterInput.addEventListener('input', (e) => {
+filterInput.addEventListener('input', async (e) => {
     if (e.target.value === '') {
         filteredStaffs = [...staffs]
     } else {
-        filteredStaffs = staffs.filter(staff => {
-            const first_name_compare = staff.first_name.toLowerCase().includes(e.target.value.toLowerCase())
-            const last_name_compare = staff.last_name.toLowerCase().includes(e.target.value.toLowerCase())
-            const email_name_compare = staff.email.toLowerCase().includes(e.target.value.toLowerCase())
-            const city_name_compare = staff.city.toLowerCase().includes(e.target.value.toLowerCase())
-            return first_name_compare || last_name_compare || email_name_compare || city_name_compare
-        })
+        const url = new URL(config.url)
+        url.searchParams.set('search', e.target.value)
+        const response = await fetch(url)
+        if (response.ok) {
+            const json = await response.json()
+            staffs = json.users
+            filteredStaffs = [...staffs]
+        }
     }
     document.dispatchEvent(rebuild)
 })
@@ -217,25 +299,29 @@ document.addEventListener('rebuild', () => {
 
     document.querySelectorAll('[data-edit-id]').forEach(el => {
         el.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-btn')) {
+                return
+            }
+
             const id = e.currentTarget.dataset.editId
             const staff = staffs.find(staff => staff.id === +id)
 
             modal.querySelector('#id').value = staff.id
-            modal.querySelector('#staff-name').value = staff.name
-            modal.querySelector('#staff-age').value = staff.age
             modal.querySelector(`#${staff.gender}`).checked = true
-            modal.querySelector('#staff-salary').value = staff.salary
-            modal.querySelector('#married').checked = staff.married
-            modal.querySelector('#staff-skills').value = staff.skills.join('\r\n')
-            modal.querySelector('#staff-date').value = new Date(staff.employment_at).toISOString().slice(0, 10)
+            modal.querySelector('#first-name').value = staff.first_name
+            modal.querySelector('#last-name').value = staff.last_name
+            modal.querySelector('#email').value = staff.email
+            modal.querySelector('#phone').value = staff.phone
+            modal.querySelector('#date_of_birth').value = new Date(staff.date_of_birth).toISOString().slice(0, 10)
+            modal.querySelector('#address').value = [staff.country, staff.state, staff.city, staff.street].join('\n')
 
             openModal()
         })
     })
 
     document.querySelectorAll('[data-delete-id]').forEach(el => {
-        el.addEventListener('click', (e) => {
-            deleteStaff(e.target.dataset.deleteId)
+        el.addEventListener('click', async (e) => {
+            await deleteStaff(e.target.dataset.deleteId)
         })
     })
 })

@@ -63,12 +63,12 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Новый сотрудник</h5>
+                    <h5 class="modal-title">Новый юзер</h5>
                     <button type="button" class="btn-close close-modal" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <form>
+                        <form name="user">
                             <input type="hidden" name="id" id="id">
                             <div class="mb-3">
                                 <div class="row">
@@ -81,43 +81,51 @@
                                     </label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="gender" id="female" value="female">
-                                            <label class="form-check-label" for="female">
-                                                Женский
-                                            </label>
-                                        </div>
-                            </div>
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="married">
-                                <label class="form-check-label" for="married">Состоит в браке</label>
+                                    <input class="form-check-input" type="radio" name="gender" id="female" value="female">
+                                    <label class="form-check-label" for="female">
+                                        Женский
+                                    </label>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <div class="row">
                                     <div class="col">
-                                        <label for="staff-name" class="col-form-label">Имя:</label>
-                                        <input type="text" class="form-control" id="staff-name" name="name">
+                                        <label for="first-name" class="col-form-label">Имя:</label>
+                                        <input type="text" class="form-control" id="first-name" name="first_name">
+                                        <div class="invalid-feedback">Неверно заполнено поле</div>
                                     </div>
                                     <div class="col">
-                                        <label for="staff-date" class="col-form-label">Дата:</label>
-                                        <input type="date" class="form-control" id="staff-date" name="employment_at">
+                                        <label for="last-name" class="col-form-label">Фамилия:</label>
+                                        <input type="text" class="form-control" id="last-name" name="last_name">
+                                        <div class="invalid-feedback">Неверно заполнено поле</div>
                                     </div>
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <div class="row">
                                     <div class="col">
-                                        <label for="staff-salary" class="col-form-label">Зарплата:</label>
-                                        <input type="number" step="100" class="form-control" id="staff-salary" name="salary">
+                                        <label for="email" class="col-form-label">E-mail:</label>
+                                        <input type="email" class="form-control" id="email" name="email">
+                                        <div class="invalid-feedback">E-mail не прошел проверку валидации</div>
                                     </div>
                                     <div class="col">
-                                        <label for="staff-age" class="col-form-label">Возраст:</label>
-                                        <input type="number" class="form-control" id="staff-age" name="age">
+                                        <label for="phone" class="col-form-label">Телефон:</label>
+                                        <input type="text" class="form-control" id="phone" name="phone">
+                                        <div class="invalid-feedback">Телефон не прошел проверку валидации</div>
                                     </div>
                                 </div>
                             </div>
+                            <div class="mb-4">
+                                <div class="col">
+                                    <label for="date_of_birth" class="col-form-label">Дата рождения:</label>
+                                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
+                                    <div class="invalid-feedback">Некорректный формат даты</div>
+                                </div>
+                            </div>
                             <div class="mb-3">
-                                <label for="staff-skills" class="col-form-label">Навыки:</label>
-                                <textarea class="form-control" id="staff-skills" name="skills" rows="6"></textarea>
+                                <label for="address" class="col-form-label">Адрес:</label>
+                                <textarea class="form-control" id="address" name="address" rows="6"></textarea>
+                                <div class="invalid-feedback">Адрес не полный.</div>
                             </div>
                         </form>
                     </div>
@@ -126,6 +134,14 @@
                     <button type="button" class="btn btn-secondary close-modal" data-bs-dismiss="modal">Отменить</button>
                     <button type="button" class="btn btn-primary save-modal">Сохранить</button>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
+        <div id="toast" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
     </div>
