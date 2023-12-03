@@ -95,7 +95,6 @@ const addListenersForPagination = () => {
     document.querySelectorAll('.page-link[data-page]')
         .forEach(page => {
             page.addEventListener('click', async (e) => {
-                console.log(e.target.dataset.page)
                 config.page = +e.target.dataset.page
                 filteredStaffs = await loadUsers()
                 document.dispatchEvent(rebuild)
