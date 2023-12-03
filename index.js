@@ -52,7 +52,7 @@ const showToast = (text) => {
     }, 2000)
 }
 
-const makePagination = () => {
+const makePages = () => {
     const pages = [1]
     if (config.page > 4) {
         pages.push(config.page - 3)
@@ -78,12 +78,17 @@ const makePagination = () => {
     if (config.lastPage - config.page > 0) {
         pages.push(config.lastPage)
     }
+    return pages
+}
+
+const makePagination = () => {
+    const pages = makePages()
 
     return pages.reduce((pagination, page, index) => {
         if (index === pages.length - 1 && config.page < config.lastPage - 4) {
             pagination += '<span class="d-flex align-items-end px-2">...</span>'
         }
-        pagination += `<li class="page-item"><button class="page-link ${page === config.page ? 'active' : ''}" data-page="${page}">${page}</button></li>`
+        pagination += `<li class="page-item ${page === config.page ? 'active' : ''}"><button class="page-link" data-page="${page}">${page}</button></li>`
         if (index === 0 && config.page > 4) {
             pagination += '<span class="d-flex align-items-end px-2">...</span>'
         }
